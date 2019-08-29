@@ -19,6 +19,24 @@ const commonConfig = {
             .set('static', resolve('src/static'))
             .set('imgs', resolve('src/assets/imgs'))
             .set('styles', resolve('src/styles'))
+        // 公共资源提取，
+        // vendors提取的是第三方公共库(满足提取规则的node_modules里面的且页面引入的)，这些文件会打到dist/js/chunk-vendors.js里面
+        // 提取规则是每个页面都引入的才会打到chunk-vendors.js里面(如vue.js)
+        // 控制条件是minChunks字段，所以该字段的值是当前activity/src/projects里面的html的个数
+        // common提取的应该是除了vendors提取后，剩余的满足条件的公共静态模块
+        // 我们的项目不需要common，所以将common置为{}，覆盖默认common配置
+        // config.optimization.splitChunks({
+        //     cacheGroups: {
+        //         vendors: {
+        //             name: 'chunk-vendors',
+        //             minChunks: 4,
+        //             test: /node_modules/,
+        //             priority: -10,
+        //             chunks: 'initial'
+        //         },
+        //         common: {}
+        //     }
+        // })
     }
 }
 
@@ -53,9 +71,7 @@ if (isDeveloping) {
                 }
             },
             setup(app) {
-                app.get('/', function(req, res) {
-                    console.log(req, res)
-                })
+                app.get('/', function(req, res) {})
             },
             openPage: 'oa/login'
         }
@@ -67,7 +83,7 @@ if (isDeveloping) {
         pages: {
             index: {
                 entry: './src/pages/' + app + '/main.js',
-                chunks: ['chunk-vendors', 'chunk-common', app]
+                chunks: ['chunk-vendors', 'chunk-common', 'index']
             }
         },
         outputDir: 'dist/' + app,
