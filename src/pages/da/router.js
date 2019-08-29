@@ -6,7 +6,7 @@ import Login from '@/components/login'
 Vue.use(Router)
 export default new Router({
     mode: 'history',
-    base: process.env.BASE_URL + 'oa',
+    base: process.env.BASE_URL + 'da',
     routes: [
         {
             path: '/login',

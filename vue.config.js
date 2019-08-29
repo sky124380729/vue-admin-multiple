@@ -1,12 +1,8 @@
 const path = require('path')
+const fs = require('fs')
 function resolve(dir) {
     return path.join(__dirname, dir)
 }
-let appName = process.argv
-    .slice(0)
-    .reverse()[0]
-    .replace('--', '')
-
 const commonConfig = {
     css: {
         loaderOptions: {
@@ -28,48 +24,53 @@ const commonConfig = {
 
 const isDeveloping = process.env.NODE_ENV === 'development'
 if (isDeveloping) {
-    console.log('开发！！！！')
+    const pages = fs.readdirSync('./src/pages').reduce((obj, page) => {
+        obj[page] = {
+            entry: `./src/pages/${page}/main.js`,
+            chunks: ['chunk-vendors', 'chunk-common', page]
+            // template: page === 'login' ? 'public/login.html' : 'public'
+        }
+        return obj
+    }, {})
     module.exports = {
         ...commonConfig,
-        pages: {
-            home: {
-                entry: './src/pages/home/main.js',
-                chunks: ['chunk-vendors', 'chunk-common', 'home']
-            },
-            oa: {
-                entry: './src/pages/oa/main.js',
-                chunks: ['chunk-vendors', 'chunk-common', 'oa']
-            }
-        },
+        pages,
         devServer: {
             hot: true,
             open: true,
             allowedHosts: ['*'], // 解决ie浏览器websocket跨域问题
             inline: true,
+            // contentBase: path.join(__dirname, 'public/index.html'), //告诉服务器从哪里提供内容，默认是public
             stats: {
                 colors: true
             },
-            // index: 'oa.html',
+            // index: 'login.html',
             proxy: {
                 '/api': {
                     changeOrigin: true,
                     // 目标服务器地址
                     target: 'http://cfm.cloudkeeper.cn'
                 }
-            }
+            },
+            setup(app) {
+                app.get('/', function(req, res) {
+                    console.log(req, res)
+                })
+            },
+            openPage: 'oa/login'
         }
     }
 } else {
-    console.log('生产！！！！')
+    const app = process.argv.reverse()[0].replace('--', '')
     module.exports = {
         ...commonConfig,
         pages: {
             index: {
-                entry: './src/pages/index/main.js',
-                chunks: ['chunk-vendors', 'chunk-common', 'index']
+                entry: './src/pages/' + app + '/main.js',
+                chunks: ['chunk-vendors', 'chunk-common', app]
             }
         },
-        outputDir: 'dist/' + appName,
+        outputDir: 'dist/' + app,
         // 生产环境不生成.map文件
         productionSourceMap: false
     }
